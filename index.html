@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>ROCKS</title>
+  </head>
+  <body style="background-color: black; text-align: center; padding: 0; border: 0; margin: 0;">
+    <canvas id="unity-canvas" width=1024 height=1024 style="margin: 0; padding: 0; border: none; position: fixed; width: 100vmin; height: 100vmin; transform: translate(-50%,-50%); left: 50%; top: 50%; background: #231F20"></canvas>
+    <div id="black-screen">
+      <p>Loading Gem Engine</p>
+      <p id="message">0%</p>
+    </div>
+    <script src="Build/webglbuild.loader.js"></script>
+    <script>
+      var statusText = document.querySelector('#message');
+      var blackScreen = document.querySelector('#black-screen');
+      
+      const URLparams = new URLSearchParams(window.location.search)
+      const rockAttributes = {
+        id:  URLparams.get('id'),
+        shape:  URLparams.get('shape'),
+        material:  URLparams.get('material'),
+        music: URLparams.get('music')
+      };
+      const rockAttributesJsonString = JSON.stringify(rockAttributes);
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+
+        var canvas = document.querySelector("#unity-canvas");
+        canvas.style.width = "100vmin";
+        canvas.style.height = "100vmin";
+        canvas.style.position = "fixed";
+
+        document.body.style.textAlign = "left";
+      }
+
+      var game = createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/webglbuild.data.br",
+        frameworkUrl: "Build/webglbuild.framework.js.br",
+        codeUrl: "Build/webglbuild.wasm.br",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "ROCKS",
+        productVersion: "0.1.0",
+        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+      },
+      (progress)=>{
+        statusText.innerHTML=Math.round(100 * progress) + '%';
+      })
+      .then((unityInstance)=>{
+        console.log("CollectibleID:");
+        console.log(rockAttributes);
+        unityInstance.SendMessage('Controller', 'LoadGemTraits', rockAttributesJsonString);
+        blackScreen.classList.add('load-complete');
+        statusText.innerHTML = 'getting ready';
+        setTimeout(()=>{
+          blackScreen.style.display="none";
+        },4000);
+      })
+      .catch((message)=>{
+        console.log(message)
+      });
+
+    </script>
+  </body>
+  <style lang="css">
+    #black-screen{
+      position: fixed;
+      left: 0;
+      top:0;
+      bottom: 0;
+      right: 0;
+      background: black;
+      opacity: 1;
+    }
+
+    .load-complete{
+      transition: 1s 3s;
+      opacity: 0!important;
+    }
+
+    #message{
+      color: white;
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%,-50%);
+      font-size: 2rem;
+    }
+  </style>
+</html>
