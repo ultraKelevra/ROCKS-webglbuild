@@ -5,13 +5,13 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>ROCKS</title>
   </head>
-  <body style="background-color: black; text-align: center; padding: 0; border: 0; margin: 0;">
-    <canvas id="unity-canvas" width=1024 height=1024 style="margin: 0; padding: 0; border: none; position: fixed; width: 100vmin; height: 100vmin; transform: translate(-50%,-50%); left: 50%; top: 50%; background: #231F20"></canvas>
+  <body id="body" style="width: 100vw; height: 100vh; background-color: black; text-align: center; padding: 0; border: 0; margin: 0;">
+    <canvas id="unity-canvas" width=1080 height=1080 style="margin: 0; padding: 0; border: none; position: fixed; width: 100vmin; height: 100vmin; transform: translate(-50%,-50%); left: 50%; top: 50%; background: #231F20"></canvas>
+    <script src="Build/webglBuilds.loader.js"></script>
     <div id="black-screen">
       <p>Loading Gem Engine</p>
       <p id="message">0%</p>
     </div>
-    <script src="Build/webglbuild.loader.js"></script>
     <script>
       var statusText = document.querySelector('#message');
       var blackScreen = document.querySelector('#black-screen');
@@ -23,6 +23,7 @@
         material:  URLparams.get('material'),
         music: URLparams.get('music')
       };
+
       const rockAttributesJsonString = JSON.stringify(rockAttributes);
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
@@ -40,10 +41,11 @@
         document.body.style.textAlign = "left";
       }
 
-      var game = createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/webglbuild.data.br",
-        frameworkUrl: "Build/webglbuild.framework.js.br",
-        codeUrl: "Build/webglbuild.wasm.br",
+      var gameInstance;
+      createUnityInstance(document.querySelector("#unity-canvas"), {
+        dataUrl: "Build/webglBuilds.data",
+        frameworkUrl: "Build/webglBuilds.framework.js",
+        codeUrl: "Build/webglBuilds.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "ROCKS",
@@ -55,19 +57,94 @@
         statusText.innerHTML=Math.round(100 * progress) + '%';
       })
       .then((unityInstance)=>{
-        console.log("CollectibleID:");
-        console.log(rockAttributes);
-        unityInstance.SendMessage('Controller', 'LoadGemTraits', rockAttributesJsonString);
+        gameInstance = unityInstance;
         blackScreen.classList.add('load-complete');
         statusText.innerHTML = 'getting ready';
         setTimeout(()=>{
-          blackScreen.style.display="none";
-        },4000);
+          // unityInstance.SendMessage('Controller', 'LoadGemTraits', rockAttributesJsonString);
+          blackScreen.classList.add('hidden');
+        },6000);
       })
       .catch((message)=>{
         console.log(message)
       });
 
+    </script>
+    
+    <!-- audio------------------------------------------------------------------------------------------------------ -->
+    <script>
+      var initializedSpectrum = false;
+      var blackScreen = document.getElementById('black-screen');
+      var audioAnalyzer;
+      var dataArray;
+      var frequencyArray;
+
+      var isAnalyzerOn = false;
+      var interactable = true;
+      var isGemOpen = false;
+      var timeout = 3000;
+      var spectrum = new Array(64);
+      
+      var audioFeedbackLoop = ()=> {
+        if(isAnalyzerOn)
+          requestAnimationFrame(audioFeedbackLoop);
+        audioAnalyzer.getByteTimeDomainData(dataArray);
+        audioAnalyzer.getByteFrequencyData(frequencyArray);
+        for(let i =0 ; i < 64; i++)
+         {
+          spectrum[i] = Number.parseFloat(dataArray[i]/256.0 * frequencyArray[i]/256.0);
+          if(spectrum[i] < 0.01)
+            spectrum[i] = 0;
+          spectrum[i]*=spectrum[i]*spectrum[i]*0.25;
+        }
+
+        var message = {
+          spectrumData: spectrum
+        }
+
+        let spectrumText = JSON.stringify(message);
+        gameInstance.SendMessage('SpectrumAnimation','UpdateSpectrumData', spectrumText);
+      }
+
+      blackScreen.addEventListener('click', ()=>{
+        if(!gameInstance)
+          return;
+        
+        if(!interactable)
+          return;
+
+        gameInstance.SendMessage('Controller',isGemOpen? 'CloseGem' : 'OpenGem' );
+        isGemOpen=!isGemOpen;
+
+        interactable = false;
+
+        if(isGemOpen)
+        {
+          timeout = 3000;
+
+          setTimeout(()=>{
+            var audioNode = window.UNITY_AUDIO_NODE;
+            var audioContext = window.UNITY_AUDIO_CONTEXT;
+            audioAnalyzer = audioContext.createAnalyser();
+            audioAnalyzer.smoothingTimeConstant = 0;
+            audioNode.connect(audioAnalyzer);
+            audioAnalyzer.fftSize = 128;
+            const bufferLength = audioAnalyzer.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+            frequencyArray = new Uint8Array(bufferLength);
+            isAnalyzerOn = true;
+            audioFeedbackLoop();
+          },1500);
+        }
+        else{
+          timeout = 2000;
+          isAnalyzerOn = false;
+        }
+
+        setTimeout(() => {
+          interactable = true;
+        }, timeout);
+    });
     </script>
   </body>
   <style lang="css">
@@ -85,7 +162,9 @@
       transition: 1s 3s;
       opacity: 0!important;
     }
-
+    .hidden{
+      display: none;
+    }
     #message{
       color: white;
       position: fixed;
