@@ -7,12 +7,19 @@
   </head>
   <body id="body" style="width: 100vw; height: 100vh; background-color: black; text-align: center; padding: 0; border: 0; margin: 0;">
     <canvas id="unity-canvas" width=1080 height=1080 style="margin: 0; padding: 0; border: none; position: fixed; width: 100vmin; height: 100vmin; transform: translate(-50%,-50%); left: 50%; top: 50%; background: #231F20"></canvas>
+    
+    <script type="text/javascript" src="https://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=gH45JZoUbapKsuS11AgeXq0kr3oQ91VxONWAep4c4IOeytkm0owVab0D1utNrw8yuDqSFsHzfaTWEHUnz90WR27a5WmWXgYf6nzEoG6OeJcWteANY90fZYz-WFOGsmKedYf1sWdxhaoFHPdQikjhyQ" charset="UTF-8"></script>
+    <link rel="stylesheet" crossorigin="anonymous" href="https://ff.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cHM6Ly9tdGNyeXB0by5teXBpbmF0YS5jbG91ZC9pcGZzL1FtZXBmS3NFaFViaVAzVnBZdXgycjdyall0M2VHWFk5V003ZHFreThKbUhMM3kvMC8" />
+    
     <script src="Build/webglBuilds.loader.js"></script>
     <div id="black-screen">
       <p>Loading Gem Engine</p>
       <p id="message">0%</p>
     </div>
     <script>
+
+      var gateway = '';
+
       var statusText = document.querySelector('#message');
       var blackScreen = document.querySelector('#black-screen');
       
@@ -41,18 +48,20 @@
         document.body.style.textAlign = "left";
       }
 
-      var gameInstance;
-      createUnityInstance(document.querySelector("#unity-canvas"), {
-        dataUrl: "Build/webglBuilds.data",
-        frameworkUrl: "Build/webglBuilds.framework.js",
-        codeUrl: "Build/webglBuilds.wasm",
+      var unityConfig = {
+          dataUrl: document.location + "Build/webglBuilds.data",
+          frameworkUrl: document.location + "Build/webglBuilds.framework.js",
+        codeUrl: document.location + "Build/webglBuilds.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "ROCKS",
         productVersion: "0.1.0",
         // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
         // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-      },
+      };
+      var gameInstance;
+      createUnityInstance(document.querySelector("#unity-canvas"),
+      unityConfig,
       (progress)=>{
         statusText.innerHTML=Math.round(100 * progress) + '%';
       })
@@ -68,7 +77,7 @@
       .catch((message)=>{
         console.log(message)
       });
-
+      console.log(unityConfig);
     </script>
     
     <!-- audio------------------------------------------------------------------------------------------------------ -->
