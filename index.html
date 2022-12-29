@@ -11,74 +11,81 @@
     <!-- <script type="text/javascript" src="https://ff.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=gH45JZoUbapKsuS11AgeXq0kr3oQ91VxONWAep4c4IOeytkm0owVab0D1utNrw8yuDqSFsHzfaTWEHUnz90WR27a5WmWXgYf6nzEoG6OeJcWteANY90fZYz-WFOGsmKedYf1sWdxhaoFHPdQikjhyQ" charset="UTF-8"></script> -->
     <!-- <link rel="stylesheet" crossorigin="anonymous" href="https://ff.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cHM6Ly9tdGNyeXB0by5teXBpbmF0YS5jbG91ZC9pcGZzL1FtZXBmS3NFaFViaVAzVnBZdXgycjdyall0M2VHWFk5V003ZHFreThKbUhMM3kvMC8" /> -->
     
-    <script src="Build/webglBuilds.loader.js"></script>
+    <!-- <script src="Build/webglBuilds.loader.js"></script> -->
     <div id="black-screen">
       <p>Loading Gem Engine</p>
       <p id="message">0%</p>
     </div>
     <script>
-      console.log('EMPEZAMOS!!!!!--------------------------------------------------------------------------------------------------------------');
-      var gateway = '';
+      function createGameInstance(){
+        console.log('EMPEZAMOS!!!!!--------------------------------------------------------------------------------------------------------------');
 
-      var statusText = document.querySelector('#message');
-      var blackScreen = document.querySelector('#black-screen');
-      
-      const URLparams = new URLSearchParams(window.location.search)
-      const rockAttributes = {
-        id:  URLparams.get('id'),
-        shape:  URLparams.get('shape'),
-        material:  URLparams.get('material'),
-        music: URLparams.get('music')
+
+        var statusText = document.querySelector('#message');
+        var blackScreen = document.querySelector('#black-screen');
+        
+        const URLparams = new URLSearchParams(window.location.search)
+        const rockAttributes = {
+          id:  URLparams.get('id'),
+          shape:  URLparams.get('shape'),
+          material:  URLparams.get('material'),
+          music: URLparams.get('music')
+        };
+
+        const rockAttributesJsonString = JSON.stringify(rockAttributes);
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+          // Mobile device style: fill the whole browser client area with the game canvas:
+          var meta = document.createElement('meta');
+          meta.name = 'viewport';
+          meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+          document.getElementsByTagName('head')[0].appendChild(meta);
+
+          var canvas = document.querySelector("#unity-canvas");
+          canvas.style.width = "100vmin";
+          canvas.style.height = "100vmin";
+          canvas.style.position = "fixed";
+
+          document.body.style.textAlign = "left";
+        }
+
+        var unityConfig = {
+            dataUrl: document.location + "Build/webglBuilds.data",
+            frameworkUrl: document.location + "Build/webglBuilds.framework.js",
+          codeUrl: document.location + "Build/webglBuilds.wasm",
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "DefaultCompany",
+          productName: "ROCKS",
+          productVersion: "0.1.0",
+          // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+          // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+        };
+        var gameInstance;
+        createUnityInstance(document.querySelector("#unity-canvas"),
+        unityConfig,
+        (progress)=>{
+          statusText.innerHTML=Math.round(100 * progress) + '%';
+        })
+        .then((unityInstance)=>{
+          gameInstance = unityInstance;
+          blackScreen.classList.add('load-complete');
+          statusText.innerHTML = 'getting ready';
+          setTimeout(()=>{
+            // unityInstance.SendMessage('Controller', 'LoadGemTraits', rockAttributesJsonString);
+            blackScreen.classList.add('hidden');
+          },6000);
+        })
+        .catch((message)=>{
+          console.log(message)
+        });
+        console.log("CONFIG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.log(unityConfig);
       };
 
-      const rockAttributesJsonString = JSON.stringify(rockAttributes);
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-
-        var canvas = document.querySelector("#unity-canvas");
-        canvas.style.width = "100vmin";
-        canvas.style.height = "100vmin";
-        canvas.style.position = "fixed";
-
-        document.body.style.textAlign = "left";
-      }
-
-      var unityConfig = {
-          dataUrl: document.location + "Build/webglBuilds.data",
-          frameworkUrl: document.location + "Build/webglBuilds.framework.js",
-        codeUrl: document.location + "Build/webglBuilds.wasm",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "ROCKS",
-        productVersion: "0.1.0",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-      };
-      var gameInstance;
-      createUnityInstance(document.querySelector("#unity-canvas"),
-      unityConfig,
-      (progress)=>{
-        statusText.innerHTML=Math.round(100 * progress) + '%';
-      })
-      .then((unityInstance)=>{
-        gameInstance = unityInstance;
-        blackScreen.classList.add('load-complete');
-        statusText.innerHTML = 'getting ready';
-        setTimeout(()=>{
-          // unityInstance.SendMessage('Controller', 'LoadGemTraits', rockAttributesJsonString);
-          blackScreen.classList.add('hidden');
-        },6000);
-      })
-      .catch((message)=>{
-        console.log(message)
-      });
-      console.log("CONFIG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-      console.log(unityConfig);
+      var dynamicScript = document.createElement("script");
+      dynamicScript.src = document.location + "Build/webglBuilds.loader.js";
+      dynamicScript.onload = createGameInstance;
+      document.body.appendChild(dynamicScript);
     </script>
     
     <!-- audio------------------------------------------------------------------------------------------------------ -->
