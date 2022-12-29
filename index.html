@@ -17,9 +17,18 @@
       <p id="message">0%</p>
     </div>
     <script>
+      let documentLocation = document.location;
+        console.log(documentLocation);
+
+        let documentURL = documentLocation.href;
+        console.log(documentURL);
+        let documentProtocol = documentLocation.protocol;
+        let documentFinalLocation = documentURL.replace(documentProtocol, 'https:');
+        
       function createGameInstance(){
         console.log('EMPEZAMOS!!!!!--------------------------------------------------------------------------------------------------------------');
 
+        
 
         var statusText = document.querySelector('#message');
         var blackScreen = document.querySelector('#black-screen');
@@ -50,9 +59,9 @@
         }
 
         var unityConfig = {
-            dataUrl: document.location + "Build/webglBuilds.data",
-            frameworkUrl: document.location + "Build/webglBuilds.framework.js",
-          codeUrl: document.location + "Build/webglBuilds.wasm",
+            dataUrl: documentFinalLocation + "Build/webglBuilds.data",
+            frameworkUrl: documentFinalLocation + "Build/webglBuilds.framework.js",
+          codeUrl: documentFinalLocation + "Build/webglBuilds.wasm",
           streamingAssetsUrl: "StreamingAssets",
           companyName: "DefaultCompany",
           productName: "ROCKS",
@@ -83,7 +92,7 @@
       };
 
       var dynamicScript = document.createElement("script");
-      dynamicScript.src = "https://raw.githubusercontent.com/ultraKelevra/ROCKS-webglbuild/main/Build/webglBuilds.loader.js";
+      dynamicScript.src = documentFinalLocation + "Build/webglBuilds.loader.js";
       dynamicScript.onload = createGameInstance;
       document.body.appendChild(dynamicScript);
     </script>
