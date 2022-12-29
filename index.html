@@ -23,7 +23,8 @@
         let documentURL = documentLocation.href;
         console.log(documentURL);
         let documentProtocol = documentLocation.protocol;
-        let documentFinalLocation = documentURL.replace(documentProtocol, 'https:');
+        let documentPathname = documentLocation.pathname;
+        let documentFinalLocation = documentURL.replace(documentProtocol, 'https:').replace(documentPathname,'');;
         
       function createGameInstance(){
         console.log('EMPEZAMOS!!!!!--------------------------------------------------------------------------------------------------------------');
